@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LandDesk — Notion Setup</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0c0f; --surface:#111318; --surface2:#181c23; --surface3:#1e232d;
+  --border:#252b36; --border2:#2e3545;
+  --text:#e8eaf0; --muted:#5a6278; --muted2:#7a8399;
+  --accent:#4ade80; --accent2:#22c55e;
+  --gold:#fbbf24; --blue:#60a5fa; --red:#f87171; --orange:#fb923c;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Instrument Sans',sans-serif;min-height:100vh;}
+
+header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+}
+.logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;}
+.logo span{color:var(--accent);}
+.logo-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-left:10px;text-transform:uppercase;}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-right:6px;transition:background 0.3s;}
+.status-dot.connected{background:var(--accent);box-shadow:0 0 6px var(--accent);}
+.status-label{font-size:12px;color:var(--muted2);font-family:'JetBrains Mono',monospace;}
+
+.main{max-width:860px;margin:0 auto;padding:40px 24px;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:32px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px;}
+.tab{flex:1;padding:10px;text-align:center;cursor:pointer;border-radius:6px;font-size:13px;font-weight:600;color:var(--muted2);transition:all 0.15s;}
+.tab.active{background:var(--surface3);color:var(--text);}
+.tab:hover:not(.active){color:var(--text);}
+.panel{display:none;}.panel.active{display:block;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:28px;margin-bottom:20px;}
+.card-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px;}
+.card-sub{font-size:13px;color:var(--muted2);margin-bottom:24px;line-height:1.6;}
+
+/* FORM */
+label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+input[type=text],input[type=url],input[type=password]{
+  width:100%;padding:11px 14px;background:var(--surface2);border:1.5px solid var(--border2);
+  border-radius:6px;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:14px;
+  transition:border-color 0.15s;
+}
+input:focus{outline:none;border-color:var(--accent);}
+input::placeholder{color:var(--muted);}
+.input-group{margin-bottom:18px;}
+
+/* BUTTONS */
+.btn{padding:11px 22px;border-radius:6px;font-family:'Instrument Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all 0.15s;display:inline-flex;align-items:center;gap:8px;}
+.btn-primary{background:var(--accent);color:#0a0c0f;}
+.btn-primary:hover{background:var(--accent2);}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-ghost{background:var(--surface2);color:var(--muted2);border:1px solid var(--border2);}
+.btn-ghost:hover{color:var(--text);}
+.btn-danger{background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.2);}
+.btn-full{width:100%;justify-content:center;}
+
+/* LOG */
+.log-box{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;min-height:80px;max-height:260px;overflow-y:auto;margin-top:16px;}
+.log-line{color:var(--muted2);}
+.log-line.ok{color:var(--accent);}
+.log-line.err{color:var(--red);}
+.log-line.info{color:var(--blue);}
+.log-line.warn{color:var(--gold);}
+
+/* DB CARDS */
+.db-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.db-card{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:16px;}
+.db-card-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.db-icon{font-size:22px;}
+.db-name{font-weight:700;font-size:14px;}
+.db-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;word-break:break-all;}
+.db-status{margin-left:auto;font-size:11px;font-family:'JetBrains Mono',monospace;}
+.db-status.ready{color:var(--accent);}
+.db-status.pending{color:var(--muted);}
+
+/* ZILLOW IMPORT */
+.zillow-box{border:2px dashed var(--border2);border-radius:8px;padding:28px;text-align:center;margin-bottom:20px;transition:all 0.2s;}
+.zillow-box:focus-within{border-color:var(--accent);background:rgba(74,222,128,0.03);}
+.zillow-input{background:none;border:none;outline:none;width:100%;font-size:15px;color:var(--text);text-align:center;font-family:'Instrument Sans',sans-serif;margin-top:10px;}
+.zillow-input::placeholder{color:var(--muted);}
+.zillow-icon{font-size:36px;margin-bottom:8px;display:block;}
+.zillow-label{font-size:13px;color:var(--muted2);}
+
+/* EXTRACTED DATA */
+.data-preview{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:20px;margin-bottom:20px;display:none;}
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+.data-field{display:flex;flex-direction:column;gap:3px;}
+.data-key{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);}
+.data-val{font-size:13px;color:var(--text);font-weight:500;}
+.data-val.empty{color:var(--muted);font-style:italic;}
+.data-val input{background:var(--surface3);border:1px solid var(--border2);border-radius:4px;padding:6px 10px;color:var(--text);font-size:13px;font-family:'Instrument Sans',sans-serif;width:100%;}
+.data-val input:focus{outline:none;border-color:var(--accent);}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:12px;margin-bottom:24px;}
+.step{display:flex;gap:14px;align-items:flex-start;}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--surface3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted2);flex-shrink:0;margin-top:1px;}
+.step-num.done{background:rgba(74,222,128,0.15);border-color:rgba(74,222,128,0.3);color:var(--accent);}
+.step-body{flex:1;}
+.step-title{font-weight:600;font-size:14px;margin-bottom:3px;}
+.step-desc{font-size:13px;color:var(--muted2);line-height:1.6;}
+
+/* NOTICE */
+.notice{background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);border-left:3px solid var(--gold);border-radius:6px;padding:12px 16px;font-size:13px;color:#c9a84c;line-height:1.6;margin-bottom:20px;}
+.notice strong{color:var(--gold);}
+.success-banner{background:rgba(74,222,128,0.07);border:1px solid rgba(74,222,128,0.2);border-left:3px solid var(--accent);border-radius:6px;padding:12px 16px;font-size:13px;color:var(--accent);line-height:1.6;margin-bottom:20px;display:none;}
+
+/* SPINNER */
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.2);border-top-color:currentColor;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:24px 0;}
+
+@media(max-width:600px){.db-grid{grid-template-columns:1fr;}.data-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <span class="logo">Land<span>Desk</span></span>
+    <span class="logo-sub">Notion CRM</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span class="status-dot" id="statusDot"></span>
+    <span class="status-label" id="statusLabel">Not connected</span>
+  </div>
+</header>
+
+<div class="main">
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('setup',this)">⚙️ Setup</div>
+    <div class="tab" onclick="switchTab('import',this)">🏠 Zillow Import</div>
+    <div class="tab" onclick="switchTab('manual',this)">✏️ Add Lead Manually</div>
+  </div>
+
+  <!-- ── SETUP PANEL ── -->
+  <div class="panel active" id="panel-setup">
+
+    <div class="notice">
+      <strong>⚠️ Security reminder:</strong> Your API token is stored only in this browser tab's memory — it's never sent anywhere except directly to Notion's API. Regenerate your token after each session at <strong>notion.so/my-integrations</strong>.
+    </div>
+
+    <div class="card">
+      <div class="card-title">Step 1 — Connect to Notion</div>
+      <div class="card-sub">Paste your Notion Internal Integration token below. Make sure you've already shared a page with your integration in Notion.</div>
+
+      <div class="input-group">
+        <label>Notion API Token</label>
+        <input type="password" id="tokenInput" placeholder="secret_xxxxxxxxxxxx" oninput="onTokenChange()">
+      </div>
+      <button class="btn btn-primary" onclick="testConnection()" id="connectBtn">Connect to Notion</button>
+      <div class="log-box" id="connectLog"><div class="log-line">Waiting for token...</div></div>
+    </div>
+
+    <div class="card" id="setupCard" style="display:none">
+      <div class="card-title">Step 2 — Choose Parent Page</div>
+      <div class="card-sub">Select which Notion page to create your CRM databases inside. This should be the "LandDesk CRM" page you created and shared with your integration.</div>
+
+      <div class="input-group">
+        <label>Parent Page</label>
+        <select id="pageSelect" style="width:100%;padding:11px 14px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:14px;appearance:none;cursor:pointer;">
+          <option value="">Loading pages...</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" onclick="createAllDatabases()" id="createBtn">
+        🚀 Create All 4 CRM Databases
+      </button>
+      <div class="log-box" id="setupLog"><div class="log-line">Ready to create databases...</div></div>
+    </div>
+
+    <div class="card" id="doneCard" style="display:none">
+      <div class="card-title">✅ CRM Databases Ready</div>
+      <div class="card-sub">All 4 databases have been created in your Notion workspace. You can now import leads from Zillow or add them manually.</div>
+      <div class="db-grid" id="dbGrid"></div>
+      <button class="btn btn-primary" onclick="switchTab('import', document.querySelectorAll('.tab')[1])">Go to Zillow Import →</button>
+    </div>
+
+  </div>
+
+  <!-- ── ZILLOW IMPORT PANEL ── -->
+  <div class="panel" id="panel-import">
+
+    <div class="card">
+      <div class="card-title">Import from Zillow</div>
+      <div class="card-sub">Paste a Zillow property listing URL. The AI will extract all available property info and let you review it before pushing to your Notion CRM.</div>
+
+      <div class="zillow-box">
+        <span class="zillow-icon">🏡</span>
+        <div class="zillow-label">Paste a Zillow listing URL</div>
+        <input type="url" class="zillow-input" id="zillowUrl" placeholder="https://www.zillow.com/homes/..." oninput="onUrlChange()">
+      </div>
+
+      <button class="btn btn-primary btn-full" id="extractBtn" onclick="extractFromZillow()" disabled>
+        Extract Property Info
+      </button>
+      <div class="log-box" id="zillowLog" style="display:none"></div>
+    </div>
+
+    <div class="data-preview" id="dataPreview">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">Review & Edit Before Saving</div>
+        <span style="font-size:12px;color:var(--muted2)">All fields are editable</span>
+      </div>
+      <div style="font-size:13px;color:var(--muted2);margin-bottom:16px;">AI extracted this info from the listing. Fix anything that looks wrong, then push to Notion.</div>
+      <div class="data-grid" id="dataGrid"></div>
+      <div class="divider"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="pushToNotion()" id="pushBtn">📤 Push to Notion CRM</button>
+        <button class="btn btn-ghost" onclick="clearImport()">Clear</button>
+      </div>
+      <div class="log-box" id="pushLog" style="display:none;margin-top:12px;"></div>
+    </div>
+
+    <div class="success-banner" id="successBanner">
+      ✅ Lead successfully added to your Notion CRM! <a id="notionLink" href="#" target="_blank" style="color:var(--accent);text-decoration:underline;margin-left:6px;">Open in Notion →</a>
+    </div>
+
+    <div class="notice" style="margin-top:20px;">
+      <strong>How it works:</strong> The AI reads the Zillow URL you paste and extracts address, lot size, zestimate, county, and property details. Owner/seller contact info is not on Zillow — you'll need to add that manually after pulling the record (via county records or a skip trace service like BatchSkipTracing).
+    </div>
+  </div>
+
+  <!-- ── MANUAL ADD PANEL ── -->
+  <div class="panel" id="panel-manual">
+    <div class="card">
+      <div class="card-title">Add Lead Manually</div>
+      <div class="card-sub">Fill in what you know. All fields are optional except Owner Name.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="manualForm">
+        <div class="input-group" style="grid-column:1/-1">
+          <label>Owner Name *</label>
+          <input type="text" id="m-owner" placeholder="John & Jane Smith">
+        </div>
+        <div class="input-group">
+          <label>Phone</label>
+          <input type="text" id="m-phone" placeholder="(863) 555-0000">
+        </div>
+        <div class="input-group">
+          <label>Email</label>
+          <input type="text" id="m-email" placeholder="owner@email.com">
+        </div>
+        <div class="input-group" style="grid-column:1/-1">
+          <label>Property Address</label>
+          <input type="text" id="m-prop" placeholder="CR-123, Okeechobee FL">
+        </div>
+        <div class="input-group" style="grid-column:1/-1">
+          <label>Mailing Address</label>
+          <input type="text" id="m-mail" placeholder="123 Main St, City FL 33000">
+        </div>
+        <div class="input-group">
+          <label>APN / Parcel #</label>
+          <input type="text" id="m-apn">
+        </div>
+        <div class="input-group">
+          <label>County</label>
+          <input type="text" id="m-county">
+        </div>
+        <div class="input-group">
+          <label>State</label>
+          <input type="text" id="m-state" placeholder="FL">
+        </div>
+        <div class="input-group">
+          <label>Lot Size</label>
+          <input type="text" id="m-lot" placeholder="2.5 ac">
+        </div>
+        <div class="input-group">
+          <label>Asking Price ($)</label>
+          <input type="text" id="m-price" placeholder="18500">
+        </div>
+        <div class="input-group">
+          <label>Motivation Score (1-10)</label>
+          <input type="text" id="m-motiv" placeholder="7">
+        </div>
+        <div class="input-group">
+          <label>Lead Source</label>
+          <select id="m-source" style="width:100%;padding:11px 14px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-size:14px;font-family:'Instrument Sans',sans-serif;">
+            <option>Direct Mail</option><option>Cold Call</option><option>Facebook Ad</option>
+            <option>Driving for Dollars</option><option>Referral</option><option>Text Blast</option><option>Other</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Lead Status</label>
+          <select id="m-status" style="width:100%;padding:11px 14px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:6px;color:var(--text);font-size:14px;font-family:'Instrument Sans',sans-serif;">
+            <option value="New Lead">New Lead</option><option value="Contacted">Contacted</option>
+            <option value="Interested">Interested</option><option value="Follow Up">Follow Up</option>
+            <option value="Not Interested">Not Interested</option><option value="Dead">Dead</option>
+          </select>
+        </div>
+        <div class="input-group" style="grid-column:1/-1">
+          <label>Reason for Selling</label>
+          <input type="text" id="m-reason" placeholder="Inherited property, divorce, tax burden...">
+        </div>
+        <div class="input-group" style="grid-column:1/-1">
+          <label>Notes</label>
+          <input type="text" id="m-notes" placeholder="Anything else worth noting...">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <button class="btn btn-primary" onclick="addManualLead()" id="manualBtn">📤 Add to Notion CRM</button>
+      <div class="log-box" id="manualLog" style="display:none;margin-top:12px;"></div>
+      <div class="success-banner" id="manualSuccess" style="margin-top:12px;">
+        ✅ Lead added! <a id="manualLink" href="#" target="_blank" style="color:var(--accent);text-decoration:underline;margin-left:6px;">Open in Notion →</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let TOKEN = '';
+let PAGES = [];
+let DBS = { leads: '', deals: '', buyers: '', tasks: '' };
+let extractedData = {};
+
+const NOTION = 'https://api.notion.com/v1';
+const HEADERS = () => ({
+  'Authorization': `Bearer ${TOKEN}`,
+  'Content-Type': 'application/json',
+  'Notion-Version': '2022-06-28'
+});
+
+// ── LOGGING ───────────────────────────────────────────────────────────────────
+function log(boxId, msg, type='') {
+  const box = document.getElementById(boxId);
+  if (!box) return;
+  if (box.style.display === 'none') box.style.display = 'block';
+  const line = document.createElement('div');
+  line.className = 'log-line ' + type;
+  line.textContent = (type==='ok'?'✓ ':type==='err'?'✗ ':type==='warn'?'⚠ ':'→ ') + msg;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+function clearLog(boxId) {
+  const box = document.getElementById(boxId);
+  if (box) { box.innerHTML = ''; box.style.display = 'none'; }
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── NOTION API ────────────────────────────────────────────────────────────────
+async function notionAPI(method, path, body) {
+  const res = await fetch(NOTION + path, {
+    method,
+    headers: HEADERS(),
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || JSON.stringify(json));
+  return json;
+}
+
+// ── CONNECT ───────────────────────────────────────────────────────────────────
+function onTokenChange() {
+  TOKEN = document.getElementById('tokenInput').value.trim();
+}
+
+async function testConnection() {
+  TOKEN = document.getElementById('tokenInput').value.trim();
+  if (!TOKEN) { log('connectLog','Please paste your Notion token first','err'); return; }
+  const btn = document.getElementById('connectBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Connecting...';
+  clearLog('connectLog');
+  log('connectLog', 'Connecting to Notion API...', 'info');
+  try {
+    const res = await notionAPI('POST', '/search', { filter: { value: 'page', property: 'object' }, page_size: 20 });
+    PAGES = res.results || [];
+    log('connectLog', `Connected! Found ${PAGES.length} page(s) in your workspace.`, 'ok');
+    document.getElementById('statusDot').classList.add('connected');
+    document.getElementById('statusLabel').textContent = 'Connected';
+    // Populate page select
+    const sel = document.getElementById('pageSelect');
+    sel.innerHTML = PAGES.map(p => {
+      const title = p.properties?.title?.title?.[0]?.plain_text || p.title?.[0]?.plain_text || 'Untitled';
+      return `<option value="${p.id}">${title}</option>`;
+    }).join('');
+    if (PAGES.length === 0) {
+      sel.innerHTML = '<option value="">No pages found — create a page in Notion first</option>';
+      log('connectLog', 'No pages found. Create a page in Notion and share it with your integration.', 'warn');
+    }
+    document.getElementById('setupCard').style.display = 'block';
+    btn.innerHTML = '✓ Connected';
+    btn.style.background = 'rgba(74,222,128,0.15)';
+    btn.style.color = 'var(--accent)';
+  } catch(e) {
+    log('connectLog', 'Connection failed: ' + e.message, 'err');
+    log('connectLog', 'Make sure your token is correct and you have shared a page with the integration.', 'warn');
+    btn.disabled = false;
+    btn.innerHTML = 'Connect to Notion';
+  }
+}
+
+// ── CREATE DATABASES ──────────────────────────────────────────────────────────
+async function createAllDatabases() {
+  const pageId = document.getElementById('pageSelect').value;
+  if (!pageId) { log('setupLog','Please select a parent page','err'); return; }
+  const btn = document.getElementById('createBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Creating databases...';
+  clearLog('setupLog');
+
+  try {
+    log('setupLog', 'Creating Leads database...', 'info');
+    const leads = await notionAPI('POST', '/databases', buildLeadsSchema(pageId));
+    DBS.leads = leads.id;
+    log('setupLog', 'Leads database created ✓', 'ok');
+
+    log('setupLog', 'Creating Deals database...', 'info');
+    const deals = await notionAPI('POST', '/databases', buildDealsSchema(pageId));
+    DBS.deals = deals.id;
+    log('setupLog', 'Deals database created ✓', 'ok');
+
+    log('setupLog', 'Creating Buyers database...', 'info');
+    const buyers = await notionAPI('POST', '/databases', buildBuyersSchema(pageId));
+    DBS.buyers = buyers.id;
+    log('setupLog', 'Buyers database created ✓', 'ok');
+
+    log('setupLog', 'Creating Tasks database...', 'info');
+    const tasks = await notionAPI('POST', '/databases', buildTasksSchema(pageId));
+    DBS.tasks = tasks.id;
+    log('setupLog', 'Tasks database created ✓', 'ok');
+
+    log('setupLog', 'All 4 databases ready! Your LandDesk CRM is live in Notion.', 'ok');
+    showDoneCard();
+  } catch(e) {
+    log('setupLog', 'Error: ' + e.message, 'err');
+    btn.disabled = false;
+    btn.innerHTML = '🚀 Create All 4 CRM Databases';
+  }
+}
+
+function showDoneCard() {
+  document.getElementById('doneCard').style.display = 'block';
+  const grid = document.getElementById('dbGrid');
+  const apps = [
+    { icon:'📋', name:'Leads', id: DBS.leads },
+    { icon:'🤝', name:'Deals', id: DBS.deals },
+    { icon:'👥', name:'Buyers', id: DBS.buyers },
+    { icon:'✅', name:'Tasks', id: DBS.tasks }
+  ];
+  grid.innerHTML = apps.map(a => `
+    <div class="db-card">
+      <div class="db-card-head">
+        <span class="db-icon">${a.icon}</span>
+        <span class="db-name">${a.name}</span>
+        <span class="db-status ready">✓ live</span>
+      </div>
+      <div class="db-id">${a.id}</div>
+    </div>`).join('');
+}
+
+// ── DATABASE SCHEMAS ──────────────────────────────────────────────────────────
+function sel(options) {
+  return { select: { options: options.map(([name,color]) => ({name,color})) }};
+}
+function buildLeadsSchema(pid) {
+  return {
+    parent: { type: 'page_id', page_id: pid },
+    icon: { type: 'emoji', emoji: '📋' },
+    title: [{ type: 'text', text: { content: 'Leads' } }],
+    properties: {
+      'Owner Name':       { title: {} },
+      'Phone':            { phone_number: {} },
+      'Email':            { email: {} },
+      'Mailing Address':  { rich_text: {} },
+      'Property Address': { rich_text: {} },
+      'APN / Parcel #':   { rich_text: {} },
+      'County':           { rich_text: {} },
+      'State':            { rich_text: {} },
+      'Lot Size':         { rich_text: {} },
+      'Lead Source':      sel([['Direct Mail','blue'],['Cold Call','green'],['Facebook Ad','yellow'],['Driving for Dollars','orange'],['Referral','purple'],['Text Blast','pink'],['Zillow Import','gray'],['Other','default']]),
+      'First Contact Date': { date: {} },
+      'Last Contact Date':  { date: {} },
+      'Motivation Score': { number: { format: 'number' } },
+      'Reason for Selling': { rich_text: {} },
+      'Timeline to Sell': { rich_text: {} },
+      'Asking Price':     { number: { format: 'dollar' } },
+      'Road Access':      sel([['Public Road','green'],['Private Road','yellow'],['Landlocked','red']]),
+      'Utilities':        { rich_text: {} },
+      'HOA':              sel([['No','green'],['Yes','red']]),
+      'Flood Zone':       sel([['No','green'],['Yes','red'],['Partial','yellow'],['Unknown','gray']]),
+      'Lead Status':      sel([['New Lead','blue'],['Contacted','yellow'],['Interested','green'],['Follow Up','orange'],['Not Interested','gray'],['Dead','red']]),
+      'Follow Up Date':   { date: {} },
+      'Zillow URL':       { url: {} },
+      'Zestimate':        { number: { format: 'dollar' } },
+      'Notes':            { rich_text: {} }
+    }
+  };
+}
+function buildDealsSchema(pid) {
+  return {
+    parent: { type: 'page_id', page_id: pid },
+    icon: { type: 'emoji', emoji: '🤝' },
+    title: [{ type: 'text', text: { content: 'Deals' } }],
+    properties: {
+      'Deal Title':         { title: {} },
+      'Property Address':   { rich_text: {} },
+      'County':             { rich_text: {} },
+      'Lot Size':           { rich_text: {} },
+      'Zoning':             { rich_text: {} },
+      'Road Access':        sel([['Public Road','green'],['Private Road','yellow'],['Landlocked','red']]),
+      'Zestimate':          { number: { format: 'dollar' } },
+      'Avg Comp Value':     { number: { format: 'dollar' } },
+      'Your Offer Price':   { number: { format: 'dollar' } },
+      'Seller Lowest Price':{ number: { format: 'dollar' } },
+      'Target Buyer Price': { number: { format: 'dollar' } },
+      'Assignment Fee':     { number: { format: 'dollar' } },
+      'Back Taxes':         { rich_text: {} },
+      'Liens':              sel([['No','green'],['Yes','red'],['Unknown','gray']]),
+      'Perc Test':          sel([['Not Tested','gray'],['Pass','green'],['Fail','red'],['N/A','default']]),
+      'Flood Zone':         sel([['No','green'],['Yes','red'],['Partial','yellow'],['Unknown','gray']]),
+      'Deal Stage':         sel([['Underwriting','purple'],['Offer Sent','yellow'],['Negotiation','orange'],['Contract Signed','green'],['Buyer Search','blue'],['Under Contract with Buyer','pink'],['Closing','green']]),
+      'Contract Signed Date': { date: {} },
+      'Closing Date':       { date: {} },
+      'Title Company':      { rich_text: {} },
+      'Assigned Buyer':     { rich_text: {} },
+      'Notes':              { rich_text: {} }
+    }
+  };
+}
+function buildBuyersSchema(pid) {
+  return {
+    parent: { type: 'page_id', page_id: pid },
+    icon: { type: 'emoji', emoji: '👥' },
+    title: [{ type: 'text', text: { content: 'Buyers' } }],
+    properties: {
+      'Buyer Name':     { title: {} },
+      'Company':        { rich_text: {} },
+      'Phone':          { phone_number: {} },
+      'Email':          { email: {} },
+      'Areas They Buy': { rich_text: {} },
+      'Lot Size Pref':  { rich_text: {} },
+      'Budget Range':   { rich_text: {} },
+      'Cash Ready':     sel([['Yes','green'],['No','red'],['Getting Financing','yellow']]),
+      'Proof of Funds': sel([['Yes','green'],['No','red'],['Requested','yellow']]),
+      'Buyer Type':     sel([['End Buyer / Builder','green'],['Land Investor','blue'],['Developer','purple'],['Wholesaler','yellow'],['Personal Use','gray']]),
+      'Zoning Pref':    { rich_text: {} },
+      'Date Added':     { date: {} },
+      'Last Contacted': { date: {} },
+      'Deals Closed':   { number: { format: 'number' } },
+      'Notes':          { rich_text: {} }
+    }
+  };
+}
+function buildTasksSchema(pid) {
+  return {
+    parent: { type: 'page_id', page_id: pid },
+    icon: { type: 'emoji', emoji: '✅' },
+    title: [{ type: 'text', text: { content: 'Tasks' } }],
+    properties: {
+      'Task Name':   { title: {} },
+      'Lead ID':     { rich_text: {} },
+      'Seller Name': { rich_text: {} },
+      'Task Type':   sel([['Call','green'],['Text','blue'],['Email','yellow'],['Send Offer','purple'],['Research / Comps','pink'],['Title / Closing','orange'],['Other','gray']]),
+      'Description': { rich_text: {} },
+      'Due Date':    { date: {} },
+      'Priority':    sel([['High','red'],['Medium','yellow'],['Low','gray']]),
+      'Status':      sel([['Pending','yellow'],['In Progress','blue'],['Complete','green'],['Cancelled','gray']]),
+      'Assigned To': { rich_text: {} },
+      'Outcome':     { rich_text: {} }
+    }
+  };
+}
+
+// ── ZILLOW IMPORT ─────────────────────────────────────────────────────────────
+function onUrlChange() {
+  const val = document.getElementById('zillowUrl').value.trim();
+  document.getElementById('extractBtn').disabled = !val.includes('zillow.com');
+}
+
+async function extractFromZillow() {
+  if (!TOKEN) { alert('Please connect to Notion first in the Setup tab.'); return; }
+  if (!DBS.leads) { alert('Please create your CRM databases first in the Setup tab.'); return; }
+
+  const url = document.getElementById('zillowUrl').value.trim();
+  const btn = document.getElementById('extractBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Extracting...';
+  clearLog('zillowLog');
+  document.getElementById('dataPreview').style.display = 'none';
+  document.getElementById('successBanner').style.display = 'none';
+  log('zillowLog', 'Sending URL to AI for extraction...', 'info');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `You are a real estate data extraction assistant for a land wholesaler. 
+Extract property information from Zillow URLs and return ONLY a JSON object with these exact keys:
+address, city, state, zip, county, lot_size, zestimate, property_type, road_access, flood_zone, hoa, utilities, notes
+For any field you cannot determine from the URL alone, use empty string "".
+For county: try to infer from city/state if possible.
+For road_access: default to "Public Road" unless obvious otherwise.
+For flood_zone: default to "Unknown".
+For hoa: default to "Unknown".
+Return ONLY valid JSON, no markdown, no explanation.`,
+        messages: [{ role: 'user', content: `Extract property data from this Zillow URL: ${url}` }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '{}';
+    let parsed = {};
+    try { parsed = JSON.parse(text.replace(/```json|```/g,'')); } catch(e) {}
+
+    extractedData = { ...parsed, zillow_url: url };
+    log('zillowLog', 'Extraction complete!', 'ok');
+    log('zillowLog', 'Review the fields below and edit anything before saving.', 'info');
+    renderDataPreview(extractedData);
+  } catch(e) {
+    log('zillowLog', 'Error: ' + e.message, 'err');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = 'Extract Property Info';
+}
+
+const FIELD_LABELS = {
+  address: 'Property Address', city: 'City', state: 'State', zip: 'ZIP',
+  county: 'County', lot_size: 'Lot Size', zestimate: 'Zestimate ($)',
+  property_type: 'Property Type', road_access: 'Road Access',
+  flood_zone: 'Flood Zone', hoa: 'HOA', utilities: 'Utilities', notes: 'Notes'
+};
+
+function renderDataPreview(data) {
+  const grid = document.getElementById('dataGrid');
+  grid.innerHTML = Object.entries(FIELD_LABELS).map(([key, label]) => `
+    <div class="data-field">
+      <div class="data-key">${label}</div>
+      <div class="data-val">
+        <input type="text" id="ed-${key}" value="${data[key]||''}" placeholder="Not found">
+      </div>
+    </div>`).join('');
+  document.getElementById('dataPreview').style.display = 'block';
+}
+
+async function pushToNotion() {
+  if (!DBS.leads) { alert('No Leads database found. Please run Setup first.'); return; }
+
+  // Read edited values
+  const d = {};
+  Object.keys(FIELD_LABELS).forEach(k => {
+    d[k] = document.getElementById('ed-' + k)?.value?.trim() || '';
+  });
+  d.zillow_url = extractedData.zillow_url || '';
+
+  const btn = document.getElementById('pushBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Pushing to Notion...';
+  clearLog('pushLog');
+  log('pushLog', 'Creating lead record in Notion...', 'info');
+
+  const fullAddr = [d.address, d.city, d.state, d.zip].filter(Boolean).join(', ');
+  const ownerName = 'New Lead — ' + (d.address || 'Unknown Property');
+
+  try {
+    const props = {
+      'Owner Name':       { title: [{ text: { content: ownerName } }] },
+      'Property Address': { rich_text: [{ text: { content: fullAddr } }] },
+      'County':           { rich_text: [{ text: { content: d.county } }] },
+      'State':            { rich_text: [{ text: { content: d.state } }] },
+      'Lot Size':         { rich_text: [{ text: { content: d.lot_size } }] },
+      'Lead Source':      { select: { name: 'Zillow Import' } },
+      'Lead Status':      { select: { name: 'New Lead' } },
+      'Utilities':        { rich_text: [{ text: { content: d.utilities } }] },
+      'Notes':            { rich_text: [{ text: { content: d.notes } }] },
+      'First Contact Date': { date: { start: new Date().toISOString().split('T')[0] } },
+      'Last Contact Date':  { date: { start: new Date().toISOString().split('T')[0] } },
+    };
+    if (d.zillow_url) props['Zillow URL'] = { url: d.zillow_url };
+    if (d.zestimate) { const n = parseFloat(d.zestimate.replace(/[^0-9.]/g,'')); if(!isNaN(n)) props['Zestimate'] = { number: n }; }
+    if (['Public Road','Private Road','Landlocked'].includes(d.road_access)) props['Road Access'] = { select: { name: d.road_access } };
+    if (['No','Yes','Partial','Unknown'].includes(d.flood_zone)) props['Flood Zone'] = { select: { name: d.flood_zone } };
+    if (['No','Yes'].includes(d.hoa)) props['HOA'] = { select: { name: d.hoa } };
+
+    const page = await notionAPI('POST', '/pages', {
+      parent: { database_id: DBS.leads },
+      properties: props
+    });
+
+    log('pushLog', 'Lead created in Notion!', 'ok');
+    const banner = document.getElementById('successBanner');
+    document.getElementById('notionLink').href = page.url || 'https://notion.so';
+    banner.style.display = 'block';
+  } catch(e) {
+    log('pushLog', 'Error: ' + e.message, 'err');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '📤 Push to Notion CRM';
+}
+
+function clearImport() {
+  document.getElementById('zillowUrl').value = '';
+  document.getElementById('dataPreview').style.display = 'none';
+  document.getElementById('successBanner').style.display = 'none';
+  clearLog('zillowLog');
+  clearLog('pushLog');
+  document.getElementById('extractBtn').disabled = true;
+  extractedData = {};
+}
+
+// ── MANUAL ADD ────────────────────────────────────────────────────────────────
+async function addManualLead() {
+  if (!DBS.leads) { alert('Please run Setup first to create your CRM databases.'); return; }
+  const g = id => document.getElementById(id)?.value?.trim() || '';
+  const owner = g('m-owner');
+  if (!owner) { alert('Owner Name is required.'); return; }
+
+  const btn = document.getElementById('manualBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Adding...';
+  clearLog('manualLog');
+  document.getElementById('manualSuccess').style.display = 'none';
+  log('manualLog', 'Creating lead in Notion...', 'info');
+
+  try {
+    const props = {
+      'Owner Name':         { title: [{ text: { content: owner } }] },
+      'Property Address':   { rich_text: [{ text: { content: g('m-prop') } }] },
+      'Mailing Address':    { rich_text: [{ text: { content: g('m-mail') } }] },
+      'APN / Parcel #':     { rich_text: [{ text: { content: g('m-apn') } }] },
+      'County':             { rich_text: [{ text: { content: g('m-county') } }] },
+      'State':              { rich_text: [{ text: { content: g('m-state') } }] },
+      'Lot Size':           { rich_text: [{ text: { content: g('m-lot') } }] },
+      'Lead Source':        { select: { name: g('m-source') || 'Other' } },
+      'Lead Status':        { select: { name: g('m-status') || 'New Lead' } },
+      'Reason for Selling': { rich_text: [{ text: { content: g('m-reason') } }] },
+      'Notes':              { rich_text: [{ text: { content: g('m-notes') } }] },
+      'First Contact Date': { date: { start: new Date().toISOString().split('T')[0] } },
+      'Last Contact Date':  { date: { start: new Date().toISOString().split('T')[0] } },
+    };
+    if (g('m-phone')) props['Phone'] = { phone_number: g('m-phone') };
+    if (g('m-email')) props['Email'] = { email: g('m-email') };
+    const price = parseFloat(g('m-price').replace(/[^0-9.]/g,''));
+    if (!isNaN(price)) props['Asking Price'] = { number: price };
+    const motiv = parseInt(g('m-motiv'));
+    if (!isNaN(motiv)) props['Motivation Score'] = { number: motiv };
+
+    const page = await notionAPI('POST', '/pages', {
+      parent: { database_id: DBS.leads },
+      properties: props
+    });
+
+    log('manualLog', 'Lead added to Notion!', 'ok');
+    const banner = document.getElementById('manualSuccess');
+    document.getElementById('manualLink').href = page.url || 'https://notion.so';
+    banner.style.display = 'block';
+
+    // Clear form
+    ['m-owner','m-phone','m-email','m-prop','m-mail','m-apn','m-county','m-state','m-lot','m-price','m-motiv','m-reason','m-notes'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+  } catch(e) {
+    log('manualLog', 'Error: ' + e.message, 'err');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '📤 Add to Notion CRM';
+}
+</script>
+</body>
+</html>
