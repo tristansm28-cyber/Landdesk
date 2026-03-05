@@ -113,7 +113,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,6,0.94);backdrop-fi
 .drop-zone:focus-within{border-color:rgba(201,168,76,0.35);box-shadow:0 0 40px rgba(201,168,76,0.05) inset;}
 .drop-icon{font-size:30px;display:block;margin-bottom:10px;opacity:0.65;}
 .drop-label{font-size:12px;color:var(--stone);margin-bottom:12px;letter-spacing:0.3px;}
-.drop-input{background:none;border:none;outline:none;width:100%;font-size:14px;font-weight:300;color:var(--ivory);text-align:center;font-family:'Montserrat',sans-serif;}
+.drop-input{background:var(--charcoal);border:1px solid var(--flint);border-radius:2px;outline:none;width:100%;font-size:14px;font-weight:300;color:var(--ivory);text-align:center;font-family:'Montserrat',sans-serif;padding:12px 16px;margin-top:8px;}
 .drop-input::placeholder{color:var(--ash);}
 
 /* DATA PREVIEW */
@@ -210,10 +210,9 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,6,0.94);backdrop-fi
         <div class="page-sub">Paste any Zillow listing URL. AI extracts property data and pushes it to your Notion CRM.</div>
       </div>
       <div class="card">
-        <div class="drop-zone">
-          <span class="drop-icon">⌂</span>
-          <div class="drop-label">Paste a Zillow property listing URL below</div>
-          <input type="url" class="drop-input" id="zillowUrl" placeholder="https://www.zillow.com/homes/..." oninput="onUrlChange()">
+        <div class="ig">
+          <label class="form-label">Zillow Listing URL</label>
+          <input type="url" class="form-input" id="zillowUrl" placeholder="https://www.zillow.com/homes/..." oninput="onUrlChange()">
         </div>
         <button class="btn btn-gold btn-full" id="extractBtn" onclick="extractFromZillow()" disabled>Extract Property Data</button>
         <div class="log-box" id="zillowLog"></div>
